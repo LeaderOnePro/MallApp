@@ -4,6 +4,7 @@ import { display } from '@kit.ArkUI';
 import { HomePage } from './Home/HomePage';
 import { CategoryPage } from './Category/CategoryPage';
 import { CartPage } from './Cart/CartPage';
+import { ProfilePage } from './Profile/ProfilePage';
 
 // Tab项数据
 interface TabItem {
@@ -66,25 +67,6 @@ struct Index {
 
 
 
-  // 我的内容
-  @Builder
-  ProfileContent() {
-    Column() {
-      Text('我的')
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .margin({ top: 20 })
-
-      Text('个人中心开发中...')
-        .fontSize(14)
-        .fontColor(Constants.TEXT_HINT)
-        .margin({ top: 10 })
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(Constants.BACKGROUND_COLOR)
-  }
-
   build() {
     Column() {
       // 根据断点类型决定布局
@@ -126,7 +108,7 @@ struct Index {
             } else if (this.currentIndex === 2) {
               CartPage()
             } else {
-              this.ProfileContent()
+              ProfilePage()
             }
           }
           .layoutWeight(1)
@@ -153,7 +135,7 @@ struct Index {
           .tabBar(this.TabBuilder(2))
 
           TabContent() {
-            this.ProfileContent()
+            ProfilePage()
           }
           .tabBar(this.TabBuilder(3))
         }
