@@ -3,6 +3,7 @@ import { BreakpointTypeEnum } from '../common/constants/Constants';
 import { display } from '@kit.ArkUI';
 import { HomePage } from './Home/HomePage';
 import { CategoryPage } from './Category/CategoryPage';
+import { CartPage } from './Cart/CartPage';
 
 // Tab项数据
 interface TabItem {
@@ -65,25 +66,6 @@ struct Index {
 
 
 
-  // 购物车内容
-  @Builder
-  CartContent() {
-    Column() {
-      Text('购物车')
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .margin({ top: 20 })
-
-      Text('购物车内容开发中...')
-        .fontSize(14)
-        .fontColor(Constants.TEXT_HINT)
-        .margin({ top: 10 })
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(Constants.BACKGROUND_COLOR)
-  }
-
   // 我的内容
   @Builder
   ProfileContent() {
@@ -142,7 +124,7 @@ struct Index {
             } else if (this.currentIndex === 1) {
               CategoryPage()
             } else if (this.currentIndex === 2) {
-              this.CartContent()
+              CartPage()
             } else {
               this.ProfileContent()
             }
@@ -166,7 +148,7 @@ struct Index {
           .tabBar(this.TabBuilder(1))
 
           TabContent() {
-            this.CartContent()
+            CartPage()
           }
           .tabBar(this.TabBuilder(2))
 
