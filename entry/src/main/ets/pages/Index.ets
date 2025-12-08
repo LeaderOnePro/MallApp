@@ -1,6 +1,7 @@
 import { Constants } from '../common/constants/Constants';
 import { BreakpointTypeEnum } from '../common/constants/Constants';
 import { display } from '@kit.ArkUI';
+import { HomePage } from './Home/HomePage';
 
 // Tab项数据
 interface TabItem {
@@ -59,25 +60,6 @@ struct Index {
     .width('100%')
     .height('100%')
     .justifyContent(FlexAlign.Center)
-  }
-
-  // 首页内容
-  @Builder
-  HomeContent() {
-    Column() {
-      Text('首页')
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .margin({ top: 20 })
-
-      Text('首页内容开发中...')
-        .fontSize(14)
-        .fontColor(Constants.TEXT_HINT)
-        .margin({ top: 10 })
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(Constants.BACKGROUND_COLOR)
   }
 
   // 分类内容
@@ -172,7 +154,7 @@ struct Index {
           // 右侧内容区域
           Column() {
             if (this.currentIndex === 0) {
-              this.HomeContent()
+              HomePage()
             } else if (this.currentIndex === 1) {
               this.CategoryContent()
             } else if (this.currentIndex === 2) {
@@ -190,7 +172,7 @@ struct Index {
         // 手机/折叠屏布局：底部导航
         Tabs({ barPosition: BarPosition.End, index: this.currentIndex }) {
           TabContent() {
-            this.HomeContent()
+            HomePage()
           }
           .tabBar(this.TabBuilder(0))
 
