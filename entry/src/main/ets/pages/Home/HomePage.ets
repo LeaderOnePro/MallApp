@@ -3,6 +3,7 @@ import httpUtil from '../../common/utils/HttpUtil';
 import { BannerItem, CategoryItem, GoodsItem } from '../../models/HomeModel';
 import { SearchBar } from '../../components/SearchBar';
 import { GoodsCard } from '../../components/GoodsCard';
+import { router } from '@kit.ArkUI';
 
 @Component
 export struct HomePage {
@@ -191,7 +192,10 @@ export struct HomePage {
       Row() {
         SearchBar({
           placeholder: '搜索商品',
-          clickable: true
+          clickable: true,
+          onSearchClick: () => {
+            router.pushUrl({ url: 'pages/Search/SearchPage' });
+          }
         })
       }
       .width('100%')

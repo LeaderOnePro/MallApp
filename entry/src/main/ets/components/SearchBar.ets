@@ -15,10 +15,8 @@ export struct SearchBar {
     Row() {
       // 搜索图标
       if (this.showIcon) {
-        Image($r('sys.media.ohos_ic_public_search_filled'))
-          .width(20)
-          .height(20)
-          .fillColor(Constants.TEXT_HINT)
+        Text('🔍')
+          .fontSize(16)
           .margin({ left: 12 })
       }
 

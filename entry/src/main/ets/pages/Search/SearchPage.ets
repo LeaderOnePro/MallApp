@@ -1,0 +1,307 @@
+import { Constants } from '../../common/constants/Constants';
+import httpUtil from '../../common/utils/HttpUtil';
+import { GoodsItem } from '../../models/HomeModel';
+import { router } from '@kit.ArkUI';
+
+@Entry
+@Component
+struct SearchPage {
+  @State searchKeyword: string = '';
+  @State searchResults: GoodsItem[] = [];
+  @State isSearching: boolean = false;
+  @State hasSearched: boolean = false;
+  @State searchHistory: string[] = [];
+
+  aboutToAppear(): void {
+    // 可以从本地存储加载搜索历史
+  }
+
+  // 执行搜索
+  private async doSearch(): Promise<void> {
+    if (!this.searchKeyword.trim()) {
+      return;
+    }
+
+    this.isSearching = true;
+    this.hasSearched = true;
+
+    // 添加到搜索历史
+    if (!this.searchHistory.includes(this.searchKeyword)) {
+      this.searchHistory = [this.searchKeyword, ...this.searchHistory.slice(0, 9)];
+    }
+
+    try {
+      // 搜索商品API
+      const response = await httpUtil.get<GoodsItem[]>(
+        `${Constants.API_BASE_URL}/home/goods?keyword=${encodeURIComponent(this.searchKeyword)}`
+      );
+      if (response.code === '1' && response.result) {
+        this.searchResults = response.result;
+      } else {
+        this.searchResults = [];
+      }
+    } catch (error) {
+      console.error('搜索失败:', JSON.stringify(error));
+      this.searchResults = [];
+    } finally {
+      this.isSearching = false;
+    }
+  }
+
+  // 清空搜索历史
+  private clearHistory(): void {
+    this.searchHistory = [];
+  }
+
+  // 返回上一页
+  private goBack(): void {
+    router.back();
+  }
+
+  // 搜索栏
+  @Builder
+  SearchHeader() {
+    Row() {
+      // 返回按钮
+      Text('←')
+        .fontSize(24)
+        .fontColor(Constants.TEXT_PRIMARY)
+        .width(40)
+        .height(40)
+        .textAlign(TextAlign.Center)
+        .onClick(() => {
+          this.goBack();
+        })
+
+      // 搜索输入框
+      Row() {
+        Text('🔍')
+          .fontSize(16)
+          .margin({ left: 12 })
+
+        TextInput({ placeholder: '搜索商品', text: this.searchKeyword })
+          .layoutWeight(1)
+          .height(36)
+          .backgroundColor(Color.Transparent)
+          .onChange((value: string) => {
+            this.searchKeyword = value;
+          })
+          .onSubmit(() => {
+            this.doSearch();
+          })
+      }
+      .layoutWeight(1)
+      .height(40)
+      .backgroundColor('#F5F5F5')
+      .borderRadius(20)
+
+      // 搜索按钮
+      Text('搜索')
+        .fontSize(14)
+        .fontColor(Constants.PRIMARY_COLOR)
+        .margin({ left: 12 })
+        .onClick(() => {
+          this.doSearch();
+        })
+    }
+    .width('100%')
+    .height(56)
+    .padding({ left: 12, right: 16 })
+    .backgroundColor(Color.White)
+  }
+
+  // 搜索历史
+  @Builder
+  SearchHistory() {
+    Column() {
+      Row() {
+        Text('搜索历史')
+          .fontSize(14)
+          .fontColor(Constants.TEXT_PRIMARY)
+          .fontWeight(FontWeight.Bold)
+
+        Blank()
+
+        Text('清空')
+          .fontSize(12)
+          .fontColor(Constants.TEXT_HINT)
+          .onClick(() => {
+            this.clearHistory();
+          })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 16, bottom: 12 })
+
+      Flex({ wrap: FlexWrap.Wrap }) {
+        ForEach(this.searchHistory, (keyword: string) => {
+          Text(keyword)
+            .fontSize(13)
+            .fontColor(Constants.TEXT_SECONDARY)
+            .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+            .backgroundColor('#F5F5F5')
+            .borderRadius(14)
+            .margin({ right: 8, bottom: 8 })
+            .onClick(() => {
+              this.searchKeyword = keyword;
+              this.doSearch();
+            })
+        })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16 })
+    }
+    .width('100%')
+    .backgroundColor(Color.White)
+    .margin({ top: 12 })
+    .borderRadius(Constants.BORDER_RADIUS)
+  }
+
+  // 热门搜索
+  @Builder
+  HotSearch() {
+    Column() {
+      Text('热门搜索')
+        .fontSize(14)
+        .fontColor(Constants.TEXT_PRIMARY)
+        .fontWeight(FontWeight.Bold)
+        .width('100%')
+        .padding({ left: 16, top: 16, bottom: 12 })
+
+      Flex({ wrap: FlexWrap.Wrap }) {
+        ForEach(['手机', '电脑', '耳机', '平板', '智能手表', '键盘', '鼠标', '显示器'], (keyword: string) => {
+          Text(keyword)
+            .fontSize(13)
+            .fontColor(Constants.TEXT_SECONDARY)
+            .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+            .backgroundColor('#F5F5F5')
+            .borderRadius(14)
+            .margin({ right: 8, bottom: 8 })
+            .onClick(() => {
+              this.searchKeyword = keyword;
+              this.doSearch();
+            })
+        })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, bottom: 16 })
+    }
+    .width('100%')
+    .backgroundColor(Color.White)
+    .margin({ top: 12 })
+    .borderRadius(Constants.BORDER_RADIUS)
+  }
+
+  // 搜索结果
+  @Builder
+  SearchResults() {
+    if (this.searchResults.length === 0) {
+      // 无结果
+      Column() {
+        Text('😔')
+          .fontSize(48)
+          .margin({ top: 60 })
+
+        Text('未找到相关商品')
+          .fontSize(14)
+          .fontColor(Constants.TEXT_HINT)
+          .margin({ top: 16 })
+
+        Text('换个关键词试试吧~')
+          .fontSize(12)
+          .fontColor(Constants.TEXT_HINT)
+          .margin({ top: 8 })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Center)
+    } else {
+      // 结果列表
+      List() {
+        ForEach(this.searchResults, (item: GoodsItem) => {
+          ListItem() {
+            Row() {
+              Image(item.picture)
+                .width(100)
+                .height(100)
+                .borderRadius(8)
+                .objectFit(ImageFit.Cover)
+
+              Column() {
+                Text(item.name)
+                  .fontSize(14)
+                  .fontColor(Constants.TEXT_PRIMARY)
+                  .maxLines(2)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                Text(item.desc)
+                  .fontSize(12)
+                  .fontColor(Constants.TEXT_HINT)
+                  .margin({ top: 6 })
+                  .maxLines(1)
+
+                Row() {
+                  Text('¥')
+                    .fontSize(12)
+                    .fontColor(Constants.PRIMARY_COLOR)
+                  Text(item.price)
+                    .fontSize(18)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(Constants.PRIMARY_COLOR)
+                }
+                .margin({ top: 8 })
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
+              .margin({ left: 12 })
+            }
+            .width('100%')
+            .padding(12)
+            .backgroundColor(Color.White)
+            .borderRadius(Constants.BORDER_RADIUS)
+          }
+          .margin({ bottom: 12 })
+        }, (item: GoodsItem) => item.id)
+      }
+      .width('100%')
+      .layoutWeight(1)
+    }
+  }
+
+  build() {
+    Column() {
+      // 搜索栏
+      this.SearchHeader()
+
+      if (!this.hasSearched) {
+        // 未搜索时显示历史和热门
+        Scroll() {
+          Column() {
+            if (this.searchHistory.length > 0) {
+              this.SearchHistory()
+            }
+            this.HotSearch()
+          }
+          .width('100%')
+        }
+        .layoutWeight(1)
+        .padding({ left: Constants.PADDING_NORMAL, right: Constants.PADDING_NORMAL })
+      } else {
+        // 搜索结果
+        Column() {
+          if (this.isSearching) {
+            LoadingProgress()
+              .width(40)
+              .height(40)
+              .margin({ top: 60 })
+          } else {
+            this.SearchResults()
+          }
+        }
+        .layoutWeight(1)
+        .padding({ left: Constants.PADDING_NORMAL, right: Constants.PADDING_NORMAL, top: 12 })
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(Constants.BACKGROUND_COLOR)
+  }
+}
