@@ -1,9 +1,9 @@
-import { Constants } from '../../common/constants/Constants';
+import { Constants, BreakpointTypeEnum } from '../../common/constants/Constants';
 import httpUtil from '../../common/utils/HttpUtil';
 import { BannerItem, CategoryItem, GoodsItem } from '../../models/HomeModel';
 import { SearchBar } from '../../components/SearchBar';
 import { GoodsCard } from '../../components/GoodsCard';
-import { router } from '@kit.ArkUI';
+import { router, display } from '@kit.ArkUI';
 
 @Component
 export struct HomePage {
@@ -12,9 +12,39 @@ export struct HomePage {
   @State hotGoods: GoodsItem[] = [];
   @State newGoods: GoodsItem[] = [];
   @State isLoading: boolean = true;
+  @State currentBreakpoint: BreakpointTypeEnum = BreakpointTypeEnum.SM;
 
   aboutToAppear(): void {
     this.loadHomeData();
+    this.updateBreakpoint();
+  }
+
+  // 更新断点
+  private updateBreakpoint(): void {
+    try {
+      const screenInfo = display.getDefaultDisplaySync();
+      const widthVp = screenInfo.width / screenInfo.densityPixels;
+      if (widthVp >= 840) {
+        this.currentBreakpoint = BreakpointTypeEnum.LG;
+      } else if (widthVp >= 600) {
+        this.currentBreakpoint = BreakpointTypeEnum.MD;
+      } else {
+        this.currentBreakpoint = BreakpointTypeEnum.SM;
+      }
+    } catch (e) {
+      console.error('获取屏幕信息失败');
+    }
+  }
+
+  // 获取网格列数模板
+  private getGridColumns(): string {
+    if (this.currentBreakpoint === BreakpointTypeEnum.LG) {
+      return '1fr 1fr 1fr 1fr';
+    } else if (this.currentBreakpoint === BreakpointTypeEnum.MD) {
+      return '1fr 1fr 1fr';
+    } else {
+      return '1fr 1fr';
+    }
   }
 
   // 加载首页数据
@@ -180,7 +210,7 @@ export struct HomePage {
         }
       })
     }
-    .columnsTemplate('1fr 1fr')
+    .columnsTemplate(this.getGridColumns())
     .columnsGap(12)
     .rowsGap(12)
     .padding({ left: Constants.PADDING_NORMAL, right: Constants.PADDING_NORMAL })
