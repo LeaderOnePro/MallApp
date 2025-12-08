@@ -60,11 +60,14 @@ class HttpUtil {
         const result = JSON.parse(response.result as string) as ApiResponse<T>;
         return result;
       } else {
-        throw new Error(`HTTP Error: ${response.responseCode}`);
+        const errorMsg = `HTTP Error: ${response.responseCode}`;
+        console.error(errorMsg);
+        return Promise.reject(errorMsg);
       }
     } catch (error) {
-      console.error('HttpUtil request error:', JSON.stringify(error));
-      throw error;
+      const errorStr = JSON.stringify(error);
+      console.error('HttpUtil request error:', errorStr);
+      return Promise.reject(errorStr);
     } finally {
       httpRequest.destroy();
     }

@@ -3,6 +3,7 @@ import { UserInfo, LoginParams } from '../models/UserModel';
 import httpUtil, { ApiResponse } from '../common/utils/HttpUtil';
 import { router } from '@kit.ArkUI';
 import { preferences } from '@kit.ArkData';
+import { common } from '@kit.AbilityKit';
 
 @Entry
 @Component
@@ -14,16 +15,16 @@ struct LoginPage {
 
   // 获取Preferences实例
   private async getPreferences(): Promise<preferences.Preferences> {
-    const context = getContext(this);
-    return await preferences.getPreferences(context, 'mall_app_prefs');
+    const context = getContext(this) as common.UIAbilityContext;
+    return preferences.getPreferencesSync(context, { name: 'mall_app_prefs' });
   }
 
   // 保存用户信息到本地
   private async saveUserInfo(userInfo: UserInfo): Promise<void> {
     try {
       const prefs = await this.getPreferences();
-      await prefs.put(Constants.USER_TOKEN, userInfo.token);
-      await prefs.put(Constants.USER_INFO, JSON.stringify(userInfo));
+      prefs.putSync(Constants.USER_TOKEN, userInfo.token);
+      prefs.putSync(Constants.USER_INFO, JSON.stringify(userInfo));
       await prefs.flush();
     } catch (error) {
       console.error('保存用户信息失败:', JSON.stringify(error));
@@ -60,7 +61,7 @@ struct LoginPage {
         // 登录成功，保存用户信息
         await this.saveUserInfo(response.result);
         // 跳转到主页
-        router.replaceUrl({
+        router.pushUrl({
           url: 'pages/Index'
         });
       } else {
