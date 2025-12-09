@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "module description"
+      "value": "美蔻商城模块"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "美蔻商城 - 您的精品购物平台"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "美蔻商城"
     }
   ]
 }
