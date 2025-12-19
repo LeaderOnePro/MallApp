@@ -2,6 +2,9 @@ import { Constants } from '../../common/constants/Constants';
 import httpUtil from '../../common/utils/HttpUtil';
 import { GoodsItem } from '../../models/HomeModel';
 import { router } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
+import speechRecognizerUtil, { SpeechRecognitionCallback } from '../../common/utils/SpeechRecognizerUtil';
+import { promptAction } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -11,6 +14,10 @@ struct SearchPage {
   @State isSearching: boolean = false;
   @State hasSearched: boolean = false;
   @State searchHistory: string[] = [];
+
+  // 语音识别相关状态
+  @State isRecording: boolean = false;
+  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
 
   aboutToAppear(): void {
     // 可以从本地存储加载搜索历史
@@ -58,6 +65,40 @@ struct SearchPage {
     router.back();
   }
 
+  // 切换语音识别
+  private async toggleVoiceRecognition(): Promise<void> {
+    if (this.isRecording) {
+      // 停止录音
+      speechRecognizerUtil.stopListening();
+      this.isRecording = false;
+    } else {
+      // 开始录音
+      const callback: SpeechRecognitionCallback = {
+        onResult: (text: string) => {
+          this.searchKeyword = text;
+          promptAction.showToast({ message: `识别结果: ${text}` });
+          // 自动执行搜索
+          this.doSearch();
+        },
+        onError: (error: string) => {
+          promptAction.showToast({ message: error });
+        },
+        onStart: () => {
+          this.isRecording = true;
+          promptAction.showToast({ message: '请开始说话...' });
+        },
+        onEnd: () => {
+          this.isRecording = false;
+        }
+      };
+
+      const success = await speechRecognizerUtil.startListening(this.context, callback);
+      if (!success) {
+        this.isRecording = false;
+      }
+    }
+  }
+
   // 搜索栏
   @Builder
   SearchHeader() {
@@ -95,11 +136,28 @@ struct SearchPage {
       .backgroundColor('#F5F5F5')
       .borderRadius(20)
 
+      // 语音按钮
+      Row() {
+        Image($r('sys.media.ohos_ic_public_voice'))
+          .width(20)
+          .height(20)
+          .fillColor(this.isRecording ? '#FF4444' : Constants.TEXT_SECONDARY)
+      }
+      .width(36)
+      .height(36)
+      .justifyContent(FlexAlign.Center)
+      .margin({ left: 8 })
+      .backgroundColor(this.isRecording ? '#FFEBEE' : '#F5F5F5')
+      .borderRadius(18)
+      .onClick(() => {
+        this.toggleVoiceRecognition();
+      })
+
       // 搜索按钮
       Text('搜索')
         .fontSize(14)
         .fontColor(Constants.PRIMARY_COLOR)
-        .margin({ left: 12 })
+        .margin({ left: 8 })
         .onClick(() => {
           this.doSearch();
         })

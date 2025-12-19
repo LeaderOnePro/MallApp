@@ -11,6 +11,18 @@
     {
       "name": "EntryAbility_label",
       "value": "美蔻商城"
+    },
+    {
+      "name": "microphone_reason",
+      "value": "用于语音搜索商品"
+    },
+    {
+      "name": "camera_reason",
+      "value": "用于拍照识别商品"
+    },
+    {
+      "name": "read_media_reason",
+      "value": "用于从相册选择图片识别商品"
     }
   ]
 }
