@@ -4,6 +4,7 @@ import { GoodsItem } from '../../models/HomeModel';
 import { router } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
 import speechRecognizerUtil, { SpeechRecognitionCallback } from '../../common/utils/SpeechRecognizerUtil';
+import imageRecognitionUtil, { ImageRecognitionCallback } from '../../common/utils/ImageRecognitionUtil';
 import { promptAction } from '@kit.ArkUI';
 
 @Entry
@@ -17,6 +18,8 @@ struct SearchPage {
 
   // 语音识别相关状态
   @State isRecording: boolean = false;
+  // 图像识别相关状态
+  @State isImageRecognizing: boolean = false;
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
 
   aboutToAppear(): void {
@@ -99,6 +102,70 @@ struct SearchPage {
     }
   }
 
+  // 显示图片选择对话框
+  private showImagePickerDialog(): void {
+    promptAction.showActionMenu({
+      title: '选择图片来源',
+      buttons: [
+        { text: '拍照', color: Constants.PRIMARY_COLOR },
+        { text: '从相册选择', color: Constants.TEXT_PRIMARY }
+      ]
+    }).then(async (result) => {
+      if (result.index === 0) {
+        // 拍照
+        await this.pickAndRecognize('camera');
+      } else if (result.index === 1) {
+        // 相册
+        await this.pickAndRecognize('gallery');
+      }
+    }).catch((error: Error) => {
+      console.info('用户取消选择');
+    });
+  }
+
+  // 选择图片并识别
+  private async pickAndRecognize(source: 'camera' | 'gallery'): Promise<void> {
+    this.isImageRecognizing = true;
+    promptAction.showToast({ message: '正在获取图片...' });
+
+    try {
+      let imageUri: string | null = null;
+
+      if (source === 'camera') {
+        imageUri = await imageRecognitionUtil.pickFromCamera(this.context);
+      } else {
+        imageUri = await imageRecognitionUtil.pickFromGallery(this.context);
+      }
+
+      if (!imageUri) {
+        this.isImageRecognizing = false;
+        return;
+      }
+
+      promptAction.showToast({ message: '正在识别图片文字...' });
+
+      // 识别图片文字
+      const callback: ImageRecognitionCallback = {
+        onResult: (text: string) => {
+          this.searchKeyword = text;
+          this.isImageRecognizing = false;
+          promptAction.showToast({ message: `识别结果: ${text}` });
+          // 自动执行搜索
+          this.doSearch();
+        },
+        onError: (error: string) => {
+          this.isImageRecognizing = false;
+          promptAction.showToast({ message: error });
+        }
+      };
+
+      await imageRecognitionUtil.recognizeText(imageUri, callback);
+    } catch (error) {
+      this.isImageRecognizing = false;
+      promptAction.showToast({ message: '图片识别失败' });
+    }
+  }
+
   // 搜索栏
   @Builder
   SearchHeader() {
@@ -151,6 +218,32 @@ struct SearchPage {
       .borderRadius(18)
       .onClick(() => {
         this.toggleVoiceRecognition();
+      })
+
+      // 拍照识图按钮
+      Row() {
+        if (this.isImageRecognizing) {
+          LoadingProgress()
+            .width(20)
+            .height(20)
+            .color(Constants.PRIMARY_COLOR)
+        } else {
+          Image($r('sys.media.ohos_ic_public_scan'))
+            .width(20)
+            .height(20)
+            .fillColor(Constants.TEXT_SECONDARY)
+        }
+      }
+      .width(36)
+      .height(36)
+      .justifyContent(FlexAlign.Center)
+      .margin({ left: 4 })
+      .backgroundColor('#F5F5F5')
+      .borderRadius(18)
+      .onClick(() => {
+        if (!this.isImageRecognizing) {
+          this.showImagePickerDialog();
+        }
       })
 
       // 搜索按钮
